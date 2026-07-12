@@ -1,5 +1,8 @@
 package model
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class Graph(
     val nodes: List<Node> = emptyList(),
     val edges: List<Edge> = emptyList()
