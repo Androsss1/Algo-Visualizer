@@ -1,0 +1,7 @@
+package model
+
+data class Edge(
+    val start: Int,
+    val end: Int,
+    val weight: Int = 1
+)
