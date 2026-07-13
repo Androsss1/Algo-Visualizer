@@ -64,8 +64,10 @@ fun GraphPanel(state: AppState, modifier: Modifier = Modifier) {
                         )
                     }
             ) {
+                if (size.width <= 0f || size.height <= 0f) return@Canvas
                 // Сетка
                 val gridSize = 40.dp.toPx()
+                if (gridSize <= 0f) return@Canvas
                 val gridColor = Color.LightGray.copy(alpha = 0.4f)
                 for (x in 0..size.width.toInt() step gridSize.toInt()) drawLine(gridColor, Offset(x.toFloat(), 0f), Offset(x.toFloat(), size.height), strokeWidth = 1f)
                 for (y in 0..size.height.toInt() step gridSize.toInt()) drawLine(gridColor, Offset(0f, y.toFloat()), Offset(size.width, y.toFloat()), strokeWidth = 1f)

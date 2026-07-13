@@ -12,7 +12,7 @@ fun App() {
     val state = remember { AppState() }
 
     MaterialTheme(colorScheme = darkColorScheme(background = DarkBackground, surface = PanelBackground)) {
-        Surface(modifier = Modifier.fillMaxSize(), color = DarkBackground) {
+        Surface(modifier = Modifier.fillMaxSize().widthIn(min = 800.dp).heightIn(min = 600.dp), color = DarkBackground) {
             Row(
                 modifier = Modifier.fillMaxSize().padding(8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
