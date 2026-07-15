@@ -135,11 +135,45 @@ class AppState {
         vertices = vertices.map { if (it.id == id) it.copy(x = it.x + dx, y = it.y + dy) else it }
     }
 
+    fun distanceToSegment(px: Float, py: Float, x1: Float, y1: Float, x2: Float, y2: Float): Float {
+        val l2 = (x1 - x2).pow(2) + (y1 - y2).pow(2)
+        if (l2 == 0f) return distance(px, py, x1, y1) // Отрезок вырожден в точку
+
+        // Проекция точки на прямую, содержащую отрезок
+        var t = ((px - x1) * (x2 - x1) + (py - y1) * (y2 - y1)) / l2
+        t = t.coerceIn(0f, 1f) // Ограничиваем проекцию пределами отрезка
+
+        val projX = x1 + t * (x2 - x1)
+        val projY = y1 + t * (y2 - y1)
+
+        return distance(px, py, projX, projY)
+    }
+
     fun removeElement(x: Float, y: Float) {
-        val clicked = vertices.find { distance(it.x, it.y, x, y) < 25f }
-        if (clicked != null) {
-            edges = edges.filter { it.from != clicked.id && it.to != clicked.id }
-            vertices = vertices.filter { it != clicked }
+        // 1. Сначала проверяем, не кликнули ли мы по вершине (радиус 25f, как при добавлении)
+        val clickedVertex = vertices.find { distance(it.x, it.y, x, y) < 25f }
+        if (clickedVertex != null) {
+            // Если кликнули по вершине, удаляем её и все связанные с ней ребра
+            edges = edges.filter { it.from != clickedVertex.id && it.to != clickedVertex.id }
+            vertices = vertices.filter { it != clickedVertex }
+            updateInitialMatrix()
+            return
+        }
+
+        // 2. Если не по вершине, проверяем, не кликнули ли мы по ребру (допуск 15 пикселей от линии)
+        val clickedEdge = edges.find { edge ->
+            val v1 = vertices.find { it.id == edge.from }
+            val v2 = vertices.find { it.id == edge.to }
+            if (v1 != null && v2 != null) {
+                distanceToSegment(x, y, v1.x, v1.y, v2.x, v2.y) < 15f
+            } else {
+                false
+            }
+        }
+
+        // 3. Если ребро найдено, удаляем только его
+        if (clickedEdge != null) {
+            edges = edges.filter { it != clickedEdge }
             updateInitialMatrix()
         }
     }
