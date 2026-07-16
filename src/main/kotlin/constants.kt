@@ -13,17 +13,17 @@ val PanelBackground = Color(0xFF252636)
 val LogBackground = Color(0xFF161621)
 val TooltipBackground = Color(0xFF2A2B3D)
 
-val PrimaryBlue = Color(0xFF2563EB)     // Начальная вершина (I)
-val HighlightPurple = Color(0xFF8B5CF6) // Конечная вершина (J)
-val HighlightOrange = Color(0xFFF59E0B) // Промежуточная вершина (K)
-val HighlightGreen = Color(0xFF10B981)  // Для инструмента рисования ребер
+val PrimaryBlue = Color(0xFF2563EB)     
+val HighlightPurple = Color(0xFF8B5CF6)
+val HighlightOrange = Color(0xFFF59E0B) 
+val HighlightGreen = Color(0xFF10B981)  
 
 // Переиспользуемые формы
 val CardShape = RoundedCornerShape(12.dp)
 val ButtonShape = RoundedCornerShape(8.dp)
 val SmallShape = RoundedCornerShape(8.dp)
 
-const val INF = 9999
+const val INF = Int.MAX_VALUE / 2
 
 @Composable
 fun appScrollbarStyle() = defaultScrollbarStyle().copy(
