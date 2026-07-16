@@ -109,13 +109,17 @@ class AppState {
     }
 
     fun initiateEdge(from: Vertex, to: Vertex) {
-        if (from.id != to.id && edges.none { it.from == from.id && it.to == to.id }) {
+        val noDuplicate = edges.none { it.from == from.id && it.to == to.id } &&
+                (!isDirected || edges.none { it.from == to.id && it.to == from.id })
+        if (from.id != to.id && noDuplicate) {
             pendingEdgeTo = to
             showWeightDialog = true
         } else {
             selectedVertexForEdge = null
         }
     }
+
+    private fun vertexIndexById(id: Int): Int = vertices.indexOfFirst { it.id == id }
 
     fun confirmAddEdge(weight: Int) {
         if (selectedVertexForEdge != null && pendingEdgeTo != null) {
@@ -222,7 +226,7 @@ class AppState {
             val centerY = 350f
             val radius = 200f
             val nodesList = uniqueNodes.toList().sorted()
-            val angleStep = 2 * Math.PI / if (nodesList.isNotEmpty()) nodesList.size else 1
+            val angleStep = 2 * Math.PI / (nodesList.size.coerceAtLeast(1))
 
             nodesList.forEachIndexed { index, name ->
                 val angle = index * angleStep
@@ -266,8 +270,8 @@ class AppState {
         val matrix = Array(n) { IntArray(n) { INF } }
         for (i in 0 until n) matrix[i][i] = 0
         edges.forEach { e ->
-            val fromIdx = vertices.indexOfFirst { it.id == e.from }
-            val toIdx = vertices.indexOfFirst { it.id == e.to }
+            val fromIdx = vertexIndexById(e.from)
+            val toIdx = vertexIndexById(e.to)
             if (fromIdx != -1 && toIdx != -1) {
                 matrix[fromIdx][toIdx] = e.weight
                 if (!isDirected) matrix[toIdx][fromIdx] = e.weight
@@ -290,8 +294,8 @@ class AppState {
 
         // ФАЗА 1: Прямые пути
         edges.forEach { e ->
-            val u = vertices.indexOfFirst { it.id == e.from }
-            val v = vertices.indexOfFirst { it.id == e.to }
+            val u = vertexIndexById(e.from)
+            val v = vertexIndexById(e.to)
             if (u != -1 && v != -1) {
                 dist[u][v] = e.weight
                 steps.add(AlgorithmStep(dist.map { it.clone() }.toTypedArray(), "Перенос прямого пути: ${vertices[u].name} → ${vertices[v].name} = ${e.weight}", activeI = u, activeJ = v, activeK = null))
@@ -420,7 +424,7 @@ fun ControlPanel(state: AppState, modifier: Modifier = Modifier) {
             SectionHeader("ИНСТРУМЕНТЫ")
             ToolButton("Добавить вершину", state.currentMode == ToolMode.ADD_VERTEX, !state.isRunning) { state.currentMode = ToolMode.ADD_VERTEX }
             ToolButton("Добавить ребро", state.currentMode == ToolMode.ADD_EDGE, !state.isRunning) { state.currentMode = ToolMode.ADD_EDGE }
-            ToolButton("Переместить", state.currentMode == ToolMode.MOVE, enabled = true) { state.currentMode = ToolMode.MOVE }
+            ToolButton("Переместить", state.currentMode == ToolMode.MOVE, enabled = !state.isRunning) { state.currentMode = ToolMode.MOVE }
             ToolButton("Удалить", state.currentMode == ToolMode.DELETE, !state.isRunning) { state.currentMode = ToolMode.DELETE }
 
             HorizontalDivider(color = Color.White.copy(alpha = 0.1f), modifier = Modifier.padding(vertical = 4.dp))
@@ -560,8 +564,8 @@ fun GraphPanel(state: AppState, modifier: Modifier = Modifier) {
 
                 // Отрисовка Ребер
                 state.edges.forEach { edge ->
-                    val v1Idx = state.vertices.indexOfFirst { it.id == edge.from }
-                    val v2Idx = state.vertices.indexOfFirst { it.id == edge.to }
+                    val v1Idx = state.vertexIndexById(edge.from)
+                    val v2Idx = state.vertexIndexById(edge.to)
                     val v1 = state.vertices.getOrNull(v1Idx)
                     val v2 = state.vertices.getOrNull(v2Idx)
 
