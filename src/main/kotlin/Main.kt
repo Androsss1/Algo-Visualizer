@@ -4,8 +4,7 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 
 fun main() = application {
-    val windowState = rememberWindowState(width = 800.dp, height = 600.dp)
-    Window(onCloseRequest = ::exitApplication, title = "Floyd-Warshall Visualizer") {
+    Window(onCloseRequest = ::exitApplication, title = "Floyd-Warshall Visualizer", state = rememberWindowState(width = 1100.dp, height = 700.dp)) {
         App()
     }
 }

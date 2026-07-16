@@ -99,13 +99,17 @@ class AppState {
     }
 
     fun initiateEdge(from: Vertex, to: Vertex) {
-        if (from.id != to.id && edges.none { it.from == from.id && it.to == to.id }) {
+        val noDuplicate = edges.none { it.from == from.id && it.to == to.id } &&
+                (!isDirected || edges.none { it.from == to.id && it.to == from.id })
+        if (from.id != to.id && noDuplicate) {
             pendingEdgeTo = to
             showWeightDialog = true
         } else {
             selectedVertexForEdge = null
         }
     }
+
+    private fun vertexIndexById(id: Int): Int = vertices.indexOfFirst { it.id == id }
 
     fun confirmAddEdge(weight: Int) {
         if (selectedVertexForEdge != null && pendingEdgeTo != null) {
@@ -211,7 +215,7 @@ class AppState {
             val centerY = 350f
             val radius = 200f
             val nodesList = uniqueNodes.toList().sorted()
-            val angleStep = 2 * Math.PI / if (nodesList.isNotEmpty()) nodesList.size else 1
+            val angleStep = 2 * Math.PI / (nodesList.size.coerceAtLeast(1))
 
             nodesList.forEachIndexed { index, name ->
                 val angle = index * angleStep
@@ -248,8 +252,8 @@ class AppState {
         val matrix = Array(n) { IntArray(n) { INF } }
         for (i in 0 until n) matrix[i][i] = 0
         edges.forEach { e ->
-            val fromIdx = vertices.indexOfFirst { it.id == e.from }
-            val toIdx = vertices.indexOfFirst { it.id == e.to }
+            val fromIdx = vertexIndexById(e.from)
+            val toIdx = vertexIndexById(e.to)
             if (fromIdx != -1 && toIdx != -1) {
                 matrix[fromIdx][toIdx] = e.weight
                 if (!isDirected) matrix[toIdx][fromIdx] = e.weight
@@ -268,8 +272,8 @@ class AppState {
 
         for (i in 0 until n) dist[i][i] = 0
         edges.forEach { e ->
-            val fromIdx = vertices.indexOfFirst { it.id == e.from }
-            val toIdx = vertices.indexOfFirst { it.id == e.to }
+            val fromIdx = vertexIndexById(e.from)
+            val toIdx = vertexIndexById(e.to)
             dist[fromIdx][toIdx] = e.weight
             if (!isDirected) dist[toIdx][fromIdx] = e.weight
         }
@@ -385,8 +389,8 @@ fun ControlPanel(state: AppState, modifier: Modifier = Modifier) {
             ToolButton("Добавить вершину", state.currentMode == ToolMode.ADD_VERTEX, !state.isRunning) { state.currentMode = ToolMode.ADD_VERTEX }
             ToolButton("Добавить ребро", state.currentMode == ToolMode.ADD_EDGE, !state.isRunning) { state.currentMode = ToolMode.ADD_EDGE }
 
-            // Кнопка перемещения ВСЕГДА АКТИВНА
-            ToolButton("Переместить", state.currentMode == ToolMode.MOVE, enabled = true) { state.currentMode = ToolMode.MOVE }
+            // Кнопка перемещения заблокирована во время выполнения алгоритма
+            ToolButton("Переместить", state.currentMode == ToolMode.MOVE, !state.isRunning) { state.currentMode = ToolMode.MOVE }
 
             ToolButton("Удалить", state.currentMode == ToolMode.DELETE, !state.isRunning) { state.currentMode = ToolMode.DELETE }
 
