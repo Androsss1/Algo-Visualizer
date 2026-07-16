@@ -70,11 +70,10 @@ class AppState {
 
     fun distanceToSegment(px: Float, py: Float, x1: Float, y1: Float, x2: Float, y2: Float): Float {
         val l2 = (x1 - x2).pow(2) + (y1 - y2).pow(2)
-        if (l2 == 0f) return distance(px, py, x1, y1) // Отрезок вырожден в точку
+        if (l2 == 0f) return distance(px, py, x1, y1) 
 
-        // Проекция точки на прямую, содержащую отрезок
         var t = ((px - x1) * (x2 - x1) + (py - y1) * (y2 - y1)) / l2
-        t = t.coerceIn(0f, 1f) // Ограничиваем проекцию пределами отрезка
+        t = t.coerceIn(0f, 1f)
 
         val projX = x1 + t * (x2 - x1)
         val projY = y1 + t * (y2 - y1)
@@ -83,17 +82,13 @@ class AppState {
     }
 
     fun removeElement(x: Float, y: Float) {
-        // 1. Сначала проверяем, не кликнули ли мы по вершине (радиус 25f, как при добавлении)
         val clickedVertex = vertices.find { distance(it.x, it.y, x, y) < 25f }
         if (clickedVertex != null) {
-            // Если кликнули по вершине, удаляем её и все связанные с ней ребра
             edges = edges.filter { it.from != clickedVertex.id && it.to != clickedVertex.id }
             vertices = vertices.filter { it != clickedVertex }
             updateInitialMatrix()
             return
         }
-
-        // 2. Если не по вершине, проверяем, не кликнули ли мы по ребру (допуск 15 пикселей от линии)
         val clickedEdge = edges.find { edge ->
             val v1 = vertices.find { it.id == edge.from }
             val v2 = vertices.find { it.id == edge.to }
@@ -104,7 +99,6 @@ class AppState {
             }
         }
 
-        // 3. Если ребро найдено, удаляем только его
         if (clickedEdge != null) {
             edges = edges.filter { it != clickedEdge }
             updateInitialMatrix()
@@ -118,7 +112,6 @@ class AppState {
         stopAlgorithm()
     }
 
-    // --- УМНЫЙ ПАРСЕР ТЕКСТОВОГО ФАЙЛА С ПРОВЕРКАМИ ---
     fun loadFromFile(file: File) {
         try {
             val lines = file.readLines().filter { it.isNotBlank() }
@@ -146,8 +139,6 @@ class AppState {
                 uniqueNodes.add(to)
                 edgeData.add(Triple(from, to, weight))
             }
-
-            // Если мы дошли сюда, значит файл идеальный. Можно стирать старый граф и строить новый.
             clearGraph()
             isDirected = firstLine == "DIRECTED"
 
@@ -173,13 +164,11 @@ class AppState {
             }
             updateInitialMatrix()
 
-            // Пишем в логгер об успехе
             if (algorithmSteps.isNotEmpty()) {
                 algorithmSteps = listOf(algorithmSteps[0].copy(logMessage = "✅ Граф успешно загружен из файла. Нажмите '▶ Запуск'."))
             }
 
         } catch (e: Exception) {
-            // Если была ошибка формата — старый граф не удаляется, а в логгер выводится ошибка
             updateInitialMatrix()
             val baseMatrix = if (algorithmSteps.isNotEmpty()) algorithmSteps[0].matrix else Array(0) { IntArray(0) }
             algorithmSteps = listOf(AlgorithmStep(baseMatrix, "❌ Ошибка файла: ${e.message}"))
@@ -221,7 +210,6 @@ class AppState {
         for (i in 0 until n) dist[i][i] = 0
         steps.add(AlgorithmStep(dist.map { it.clone() }.toTypedArray(), "Шаг 1: Инициализация. Главная диагональ заполнена нулями."))
 
-        // ФАЗА 1: Прямые пути
         edges.forEach { e ->
             val u = vertexIndexById(e.from)
             val v = vertexIndexById(e.to)
@@ -237,7 +225,6 @@ class AppState {
 
         steps.add(AlgorithmStep(dist.map { it.clone() }.toTypedArray(), "Шаг 2: Поиск кратчайших путей через промежуточные вершины."))
 
-        // ФАЗА 2: Обходные пути
         for (k in 0 until n) {
             val phaseHeader = "--- [ ЭТАП k = ${vertices[k].name} ] ---\n"
             for (i in 0 until n) {
