@@ -53,7 +53,6 @@ fun MatrixPanel(state: AppState, modifier: Modifier = Modifier) {
                 LazyVerticalGrid(columns = GridCells.Fixed(n + 1), state = gridState) {
                     item { MatrixCell("", isHeader = true, bgColor = PanelBackground) }
 
-                    // Верхние заголовки (Столбцы = j или k)
                     items(n) { colIndex ->
                         val hBg = when (colIndex) {
                             step.activeI -> PrimaryBlue
@@ -65,7 +64,6 @@ fun MatrixPanel(state: AppState, modifier: Modifier = Modifier) {
                     }
 
                     for (i in 0 until n) {
-                        // Левые заголовки (Строки = i или k)
                         val hBg = when (i) {
                             step.activeI -> PrimaryBlue
                             step.activeJ -> HighlightPurple
@@ -74,7 +72,6 @@ fun MatrixPanel(state: AppState, modifier: Modifier = Modifier) {
                         }
                         item { MatrixCell(state.vertices[i].name, isHeader = true, bgColor = hBg) }
 
-                        // Ячейки
                         for (j in 0 until n) {
                             val v = matrix[i][j]
                             val isTarget = (i == step.activeI && j == step.activeJ)
