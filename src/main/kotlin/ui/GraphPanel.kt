@@ -88,7 +88,6 @@ fun GraphPanel(state: AppState, modifier: Modifier = Modifier) {
                 val actJ = step?.activeJ
                 val actK = step?.activeK
 
-                // Отрисовка Ребер
                 state.edges.forEach { edge ->
                     val v1Idx = state.vertexIndexById(edge.from)
                     val v2Idx = state.vertexIndexById(edge.to)
@@ -136,7 +135,6 @@ fun GraphPanel(state: AppState, modifier: Modifier = Modifier) {
                     }
                 }
 
-                // Отрисовка Вершин
                 state.vertices.forEachIndexed { index, vertex ->
                     val vColor = when {
                         state.selectedVertexForEdge == vertex -> HighlightGreen
