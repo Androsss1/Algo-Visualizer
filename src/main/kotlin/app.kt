@@ -68,7 +68,7 @@ fun App() {
                 text = {
                     OutlinedTextField(
                         value = weightInput,
-                        onValueChange = { if (it.isEmpty() || it.all { char -> char.isDigit() }) weightInput = it },
+                        onValueChange = { if (it.isEmpty() || it.matches(Regex("-?\\d*"))) weightInput = it },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                         keyboardActions = KeyboardActions(onDone = { state.confirmAddEdge(weightInput.toIntOrNull() ?: 1) }),

@@ -22,6 +22,8 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 
     testImplementation(kotlin("test"))
+    testImplementation("org.jetbrains.compose.ui:ui-test-junit4:1.8.2")
+    testImplementation("org.jetbrains.compose.ui:ui-test:1.8.2")
 }
 
 kotlin {
