@@ -25,7 +25,7 @@ jobs:
         run: ./gradlew.bat fatJar
 
       - name: Build Windows MSI installer
-        run: ./gradlew.bat createMsi
+        run: ./gradlew.bat packageMsi
 
       - name: Upload JAR artifact
         uses: actions/upload-artifact@v4
