@@ -29,6 +29,17 @@ dependencies {
 kotlin {
     jvmToolchain(21)
 }
+
+tasks.register<Jar>("fatJar") {
+    archiveBaseName.set("GuiAlgo")
+    archiveClassifier.set("")
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    manifest { attributes["Main-Class"] = "MainKt" }
+    val runtimeClasspath by configurations
+    from(runtimeClasspath.map { if (it.isDirectory) it else zipTree(it) })
+    with(tasks.jar.get() as Jar)
+}
+
 compose.desktop {
     application {
         mainClass = "MainKt"
