@@ -38,8 +38,11 @@ class AppState {
     }
 
     fun initiateEdge(from: Vertex, to: Vertex) {
-        val noDuplicate = edges.none { it.from == from.id && it.to == to.id } &&
-                (!isDirected || edges.none { it.from == to.id && it.to == from.id })
+        val noDuplicate = if (isDirected) {
+            edges.none { it.from == from.id && it.to == to.id }
+        } else {
+            edges.none { (it.from == from.id && it.to == to.id) || (it.from == to.id && it.to == from.id) }
+        }
         if (from.id != to.id && noDuplicate) {
             pendingEdgeTo = to
             showWeightDialog = true
@@ -101,6 +104,9 @@ class AppState {
 
         if (clickedEdge != null) {
             edges = edges.filter { it != clickedEdge }
+            if (!isDirected) {
+                edges = edges.filter { !(it.from == clickedEdge.to && it.to == clickedEdge.from) }
+            }
             updateInitialMatrix()
         }
     }
@@ -159,7 +165,11 @@ class AppState {
                 val v1 = vertices.find { it.name == fromName }
                 val v2 = vertices.find { it.name == toName }
                 if (v1 != null && v2 != null) {
-                    edges = edges + Edge(v1.id, v2.id, weight)
+                    val already = edges.any { e ->
+                        if (isDirected) e.from == v1.id && e.to == v2.id
+                        else (e.from == v1.id && e.to == v2.id) || (e.from == v2.id && e.to == v1.id)
+                    }
+                    if (!already) edges = edges + Edge(v1.id, v2.id, weight)
                 }
             }
             updateInitialMatrix()

@@ -209,6 +209,40 @@ class AppStateTest {
     }
 
     @JvmTest
+    fun `removeElement cascades opposite edge in undirected graph`() {
+        val state = buildState()
+        state.isDirected = false
+        state.selectedVertexForEdge = state.vertices[0]
+        state.initiateEdge(state.vertices[0], state.vertices[1])
+        state.confirmAddEdge(5)
+        state.selectedVertexForEdge = state.vertices[1]
+        state.initiateEdge(state.vertices[1], state.vertices[0])
+        state.confirmAddEdge(5)
+        assertEquals(1, state.edges.size)
+        val v1 = state.vertices[0]
+        val v2 = state.vertices[1]
+        state.removeElement((v1.x + v2.x) / 2, (v1.y + v2.y) / 2)
+        assertEquals(0, state.edges.size)
+    }
+
+    @JvmTest
+    fun `loadFromFile does not duplicate opposite edges in undirected graph`() {
+        val state = AppState()
+        val file = createTempFile("graph", ".txt").apply {
+            writeText(
+                """
+                UNDIRECTED
+                A B 3
+                B A 3
+                """.trimIndent()
+            )
+        }
+        state.loadFromFile(file)
+        assertEquals(2, state.vertices.size)
+        assertEquals(1, state.edges.size)
+    }
+
+    @JvmTest
     fun `clearGraph resets everything`() {
         val state = buildState()
         addEdge(state, 0, 1, 5)
