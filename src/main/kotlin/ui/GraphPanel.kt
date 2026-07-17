@@ -9,6 +9,7 @@ import HighlightPurple
 import LogBackground
 import PrimaryBlue
 import SmallShape
+import TooltipBackground
 import models.Edge
 import models.ToolMode
 import models.Vertex
@@ -127,10 +128,29 @@ fun GraphPanel(state: AppState, modifier: Modifier = Modifier) {
                         }
 
                         val midX = (v1.x + v2.x) / 2
-                        val midY = (v1.y + v2.y) / 2 - 20f
+                        val midY = (v1.y + v2.y) / 2
+
+                        val weightText = edge.weight.toString()
+                        val weightStyle = TextStyle(
+                            color = if (isActiveEdge) edgeColor else Color(0xFF1565C0),
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        val measured = textMeasurer.measure(weightText, weightStyle)
+                        val textW = measured.size.width
+                        val textH = measured.size.height
+
+                        drawRoundRect(
+                            color = TooltipBackground,
+                            topLeft = Offset(midX - textW / 2 - 4f, midY - textH / 2 - 2f),
+                            size = androidx.compose.ui.geometry.Size(textW + 8f, textH + 4f),
+                            cornerRadius = androidx.compose.ui.geometry.CornerRadius(4f, 4f)
+                        )
                         drawText(
-                            textMeasurer = textMeasurer, text = edge.weight.toString(), topLeft = Offset(midX, midY),
-                            style = TextStyle(color = if (isActiveEdge) edgeColor else Color.Red.copy(alpha = if (actI != null) 0.5f else 1f), fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                            textMeasurer = textMeasurer,
+                            text = weightText,
+                            topLeft = Offset(midX - textW / 2, midY - textH / 2),
+                            style = weightStyle
                         )
                     }
                 }
