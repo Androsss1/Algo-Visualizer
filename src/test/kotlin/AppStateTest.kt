@@ -209,6 +209,27 @@ class AppStateTest {
     }
 
     @JvmTest
+    fun `directed graph allows opposite edges with different weights`() {
+        val state = buildState()
+        state.isDirected = true
+        state.selectedVertexForEdge = state.vertices[0]
+        state.initiateEdge(state.vertices[0], state.vertices[1])
+        state.confirmAddEdge(5)
+        state.selectedVertexForEdge = state.vertices[1]
+        state.initiateEdge(state.vertices[1], state.vertices[0])
+        state.confirmAddEdge(7)
+        assertEquals(2, state.edges.size)
+        val ab = state.edges.first { it.from == 0 && it.to == 1 }
+        val ba = state.edges.first { it.from == 1 && it.to == 0 }
+        assertEquals(5, ab.weight)
+        assertEquals(7, ba.weight)
+        state.startAlgorithm()
+        val m = state.algorithmSteps.last().matrix
+        assertEquals(5, m[0][1])
+        assertEquals(7, m[1][0])
+    }
+
+    @JvmTest
     fun `removeElement cascades opposite edge in undirected graph`() {
         val state = buildState()
         state.isDirected = false

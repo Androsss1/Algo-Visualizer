@@ -111,12 +111,35 @@ fun GraphPanel(state: AppState, modifier: Modifier = Modifier) {
                         }
                         val thickness = if (isActiveEdge) 6f else 3f
 
-                        drawLine(color = edgeColor, start = Offset(v1.x, v1.y), end = Offset(v2.x, v2.y), strokeWidth = thickness)
+                        val hasReverse = state.edges.any { it.from == edge.to && it.to == edge.from }
+                        val sx1: Float
+                        val sy1: Float
+                        val sx2: Float
+                        val sy2: Float
+                        if (hasReverse) {
+                            val dx = v2.x - v1.x
+                            val dy = v2.y - v1.y
+                            val len = kotlin.math.sqrt(dx * dx + dy * dy).coerceAtLeast(1f)
+                            val nx = -dy / len
+                            val ny = dx / len
+                            val off = 12f
+                            sx1 = v1.x + nx * off
+                            sy1 = v1.y + ny * off
+                            sx2 = v2.x + nx * off
+                            sy2 = v2.y + ny * off
+                        } else {
+                            sx1 = v1.x
+                            sy1 = v1.y
+                            sx2 = v2.x
+                            sy2 = v2.y
+                        }
+
+                        drawLine(color = edgeColor, start = Offset(sx1, sy1), end = Offset(sx2, sy2), strokeWidth = thickness)
 
                         if (state.isDirected) {
-                            val angle = atan2(v2.y - v1.y, v2.x - v1.x)
-                            val tipX = v2.x - 22f * cos(angle)
-                            val tipY = v2.y - 22f * sin(angle)
+                            val angle = atan2(sy2 - sy1, sx2 - sx1)
+                            val tipX = sx2 - 22f * cos(angle)
+                            val tipY = sy2 - 22f * sin(angle)
                             val arrowLen = 15f
                             val p1X = tipX - arrowLen * cos(angle - PI / 6)
                             val p1Y = tipY - arrowLen * sin(angle - PI / 6)
@@ -127,8 +150,8 @@ fun GraphPanel(state: AppState, modifier: Modifier = Modifier) {
                             drawPath(arrowPath, edgeColor)
                         }
 
-                        val midX = (v1.x + v2.x) / 2
-                        val midY = (v1.y + v2.y) / 2
+                        val midX = (sx1 + sx2) / 2
+                        val midY = (sy1 + sy2) / 2
 
                         val weightText = edge.weight.toString()
                         val weightStyle = TextStyle(
