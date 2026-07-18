@@ -8,6 +8,7 @@ import models.Vertex
 import java.awt.FileDialog
 import java.awt.Frame
 import java.io.File
+import kotlin.collections.get
 import kotlin.math.cos
 import kotlin.math.pow
 import kotlin.math.sin
@@ -184,6 +185,41 @@ class AppState {
             algorithmSteps = listOf(AlgorithmStep(baseMatrix, "❌ Ошибка файла: ${e.message}"))
         }
     }
+    fun findBridges(dist: Array<IntArray>): List<Edge> {
+        val n = vertices.size
+        val adj = Array(n) { mutableListOf<Edge>() }
+        edges.forEach { e ->
+            val u = vertexIndexById(e.from)
+            val v = vertexIndexById(e.to)
+            if (u != -1 && v != -1) { adj[u].add(e); adj[v].add(e) }
+        }
+        val visited = BooleanArray(n)
+        val tin = IntArray(n) { -1 }
+        val low = IntArray(n) { -1 }
+        val bridges = mutableListOf<Edge>()
+        var timer = 0
+
+        fun dfs(v: Int, parent: Edge?) {
+            visited[v] = true
+            tin[v] = timer; low[v] = timer; timer++
+            for (e in adj[v]) {
+                val toId = if (e.from == vertices[v].id) e.to else e.from
+                val to = vertexIndexById(toId)
+                if (to == -1) continue
+                if (e === parent) continue
+                if (visited[to]) {
+                    low[v] = minOf(low[v], tin[to])
+                } else {
+                    dfs(to, e)
+                    low[v] = minOf(low[v], low[to])
+                    if (low[to] > tin[v]) bridges.add(Edge(e.from, e.to, e.weight))
+                }
+            }
+        }
+
+        for (i in 0 until n) if (!visited[i]) dfs(i, null)
+        return bridges
+    }
 
     fun toggleDirected() {
         if (!isRunning) {
@@ -260,15 +296,26 @@ class AppState {
                 }
             }
         }
-        steps.add(
-            AlgorithmStep(
-                dist.map { it.clone() }.toTypedArray(),
-                "Алгоритм завершен. Все кратчайшие пути найдены."
-            )
-        )
+
+        val bridges = findBridges(dist)
+        val msg = buildString {
+            append("Алгоритм завершен. Все кратчайшие пути найдены.")
+            if (bridges.isNotEmpty()) {
+                bridges.forEach { b ->
+                    val v1 = vertices.first { it.id == b.from }
+                    val v2 = vertices.first { it.id == b.to }
+                    append("\n[Примечание]: вершины ${v1.name} и ${v2.name} находятся в разных компонентах связности,путь между ними не существует\n")
+                }
+            }
+        }
+
+        steps.add(AlgorithmStep(dist.map{it.clone()}.toTypedArray(),msg))
         algorithmSteps = steps
         currentStepIndex = 0
     }
+
+
+
 
     fun stopAlgorithm() {
         isRunning = false
