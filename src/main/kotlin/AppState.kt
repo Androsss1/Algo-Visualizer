@@ -275,7 +275,7 @@ class AppState {
             val phaseHeader = "--- [ ЭТАП k = ${vertices[k].name} ] ---\n"
             for (i in 0 until n) {
                 for (j in 0 until n) {
-                    if (i != k && j != k && i != j) {
+                    if (i != k && j != k) {
                         val current = dist[i][j]
                         val ik = dist[i][k]
                         val kj = dist[k][j]
@@ -287,7 +287,8 @@ class AppState {
 
                             if (newPath < current) {
                                 dist[i][j] = newPath
-                                steps.add(AlgorithmStep(dist.map { it.clone() }.toTypedArray(), msg + "($newPath < $curStr) -> Обновляем!", i, j, k))
+                                val negNote = if (i == j && newPath < 0) "Внимание: обнаружен отрицательный цикл. Результаты алгоритма могут быть некорректны" else ""
+                                steps.add(AlgorithmStep(dist.map { it.clone() }.toTypedArray(), msg + "($newPath < $curStr) -> Обновляем!\n $negNote", i, j, k))
                             } else {
                                 steps.add(AlgorithmStep(dist.map { it.clone() }.toTypedArray(), msg + "($newPath >= $curStr) -> Игнорируем.", i, j, k))
                             }
@@ -297,9 +298,9 @@ class AppState {
             }
         }
 
-        val bridges = findBridges(dist)
         val msg = buildString {
             append("Алгоритм завершен. Все кратчайшие пути найдены.")
+            val bridges = findBridges(dist)
             if (bridges.isNotEmpty()) {
                 bridges.forEach { b ->
                     val v1 = vertices.first { it.id == b.from }
