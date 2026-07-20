@@ -185,42 +185,6 @@ class AppState {
             algorithmSteps = listOf(AlgorithmStep(baseMatrix, "❌ Ошибка файла: ${e.message}"))
         }
     }
-    fun findBridges(dist: Array<IntArray>): List<Edge> {
-        val n = vertices.size
-        val adj = Array(n) { mutableListOf<Edge>() }
-        edges.forEach { e ->
-            val u = vertexIndexById(e.from)
-            val v = vertexIndexById(e.to)
-            if (u != -1 && v != -1) { adj[u].add(e); adj[v].add(e) }
-        }
-        val visited = BooleanArray(n)
-        val tin = IntArray(n) { -1 }
-        val low = IntArray(n) { -1 }
-        val bridges = mutableListOf<Edge>()
-        var timer = 0
-
-        fun dfs(v: Int, parent: Edge?) {
-            visited[v] = true
-            tin[v] = timer; low[v] = timer; timer++
-            for (e in adj[v]) {
-                val toId = if (e.from == vertices[v].id) e.to else e.from
-                val to = vertexIndexById(toId)
-                if (to == -1) continue
-                if (e === parent) continue
-                if (visited[to]) {
-                    low[v] = minOf(low[v], tin[to])
-                } else {
-                    dfs(to, e)
-                    low[v] = minOf(low[v], low[to])
-                    if (low[to] > tin[v]) bridges.add(Edge(e.from, e.to, e.weight))
-                }
-            }
-        }
-
-        for (i in 0 until n) if (!visited[i]) dfs(i, null)
-        return bridges
-    }
-
     fun toggleDirected() {
         if (!isRunning) {
             isDirected = !isDirected
@@ -298,15 +262,31 @@ class AppState {
             }
         }
 
+        val nVerts = vertices.size
+        val negCycle = (0 until nVerts).firstOrNull { dist[it][it] < 0 }
         val msg = buildString {
-            append("Алгоритм завершен. Все кратчайшие пути найдены.")
-            val bridges = findBridges(dist)
-            if (bridges.isNotEmpty()) {
-                bridges.forEach { b ->
-                    val v1 = vertices.first { it.id == b.from }
-                    val v2 = vertices.first { it.id == b.to }
-                    append("\n[Примечание]: вершины ${v1.name} и ${v2.name} находятся в разных компонентах связности,путь между ними не существует\n")
+            if (negCycle != null) {
+                append("Обнаружен отрицательный цикл, содержащий вершину ${vertices[negCycle].name}.\n")
+            }
+            append("Алгоритм завершен.\n")
+            val compId = IntArray(nVerts) { -1 }
+            var compCnt = 0
+            for (i in 0 until nVerts) {
+                if (compId[i] != -1) continue
+                compId[i] = compCnt
+                for (j in i + 1 until nVerts) {
+                    val reachable = if (isDirected) dist[i][j] != INF && dist[j][i] != INF
+                                    else dist[i][j] != INF
+                    if (reachable && compId[j] == -1) compId[j] = compCnt
                 }
+                compCnt++
+            }
+            if (compCnt > 1) {
+                append("Примечание: Граф несвязный. Компоненты связности: ")
+                val groups = List(compCnt) { c -> vertices.filterIndexed { v, _ -> compId[v] == c }.map { it.name } }
+                append(groups.joinToString(", ") { "{${it.joinToString(",")}}" })
+            } else {
+                append("Граф связный.")
             }
         }
 
